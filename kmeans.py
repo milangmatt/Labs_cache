@@ -1,46 +1,68 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 
-# Load the dataset
+# Load the dataset from the CSV file
 data = pd.read_csv('kmdat.csv')
 X = data.values
 
-# Define the number of clusters
-k = 3
+# Function to calculate the Euclidean distance
+def euclidean_distance(a, b):
+    return np.sqrt(np.sum((a - b) ** 2))
 
-# Initialize centroids randomly from the data points
-np.random.seed(42)
-initial_centroids_indices = np.random.choice(X.shape[0], k, replace=False)
-centroids = X[initial_centroids_indices]
-
-# Function to compute the distance between points and centroids
-def compute_distances(points, centroids):
-    distances = np.linalg.norm(points[:, np.newaxis] - centroids, axis=2)
-    return distances
-
-# K-Means clustering algorithm
+# K-Means algorithm implementation
 def kmeans(X, k, max_iters=100):
+    # Randomly initialize centroids
+    np.random.seed(0)
     centroids = X[np.random.choice(X.shape[0], k, replace=False)]
+    
     for _ in range(max_iters):
-        distances = compute_distances(X, centroids)
-        labels = np.argmin(distances, axis=1)
-        new_centroids = np.array([X[labels == i].mean(axis=0) for i in range(k)])
+        # Assign clusters
+        clusters = [[] for _ in range(k)]
+        for point in X:
+            distances = [euclidean_distance(point, centroid) for centroid in centroids]
+            cluster_index = np.argmin(distances)
+            clusters[cluster_index].append(point)
+        
+        # Update centroids
+        new_centroids = np.array([np.mean(cluster, axis=0) for cluster in clusters])
+        
+        # Check for convergence
         if np.all(centroids == new_centroids):
             break
+        
         centroids = new_centroids
+    
+    # Assign labels
+    labels = np.zeros(X.shape[0])
+    for cluster_index, cluster in enumerate(clusters):
+        for point in cluster:
+            labels[np.where((X == point).all(axis=1))] = cluster_index
+    
     return centroids, labels
+
+# Set the number of clusters
+k = 3
 
 # Run K-Means
 centroids, labels = kmeans(X, k)
 
+# Visualize the clustered data
+plt.scatter(X[:, 0], X[:, 1], c=labels, s=50, cmap='viridis')
+plt.scatter(centroids[:, 0], centroids[:, 1], c='red', s=200, alpha=0.75, marker='X')
+plt.title("K-Means Clustering")
+plt.xlabel("VAL1")
+plt.ylabel("VAL2")
+plt.show()
+
 # Organize points into clusters
 clusters = [[] for _ in range(k)]
 for label, point in zip(labels, X):
-    clusters[label].append(point)
+    clusters[int(label)].append(point)
 
-# Display the clusters
+# Display the clusters as lists
 for i, cluster in enumerate(clusters):
-    print(f"Cluster {i+1}:",end= ' ')
+    print(f"Cluster {i+1}:")
     for point in cluster:
-        print(point, end= ' ')
+        print(point)
     print()
