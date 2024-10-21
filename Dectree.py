@@ -83,16 +83,17 @@ def build_tree(data):
     return DecisionNode(index=index, value=value, true_branch=true_node, false_branch=false_node)
 
 # Step 6: Print the Decision Tree
-def print_tree(node, headers, spacing=""):
+def print_tree(node, headers, spacing="", level=0):
     if node.prediction is not None:
-        print(spacing + f"Predict: {node.prediction}")
+        print(spacing*2 + f"Predict: {node.prediction}")
         return
 
-    print(f"{spacing}{headers[node.index]} == {node.value}?")
-    print(spacing + '--> True:')
-    print_tree(node.true_branch, headers, spacing + "  ")
-    print(spacing + '--> False:')
-    print_tree(node.false_branch, headers, spacing + "  ")
+    print(f" {spacing}{spacing} |( {headers[node.index]} == {node.value} ) ?")
+    print(spacing + '  ' * level + '  |')
+    print(spacing + '  ' * level + '  |--> True:')
+    print_tree(node.true_branch, headers, spacing + '  ', level + 1)
+    print(spacing + '  ' * level + '  |--> False:')
+    print_tree(node.false_branch, headers, spacing + '  ', level + 1)
 
 # Step 7: Classify a new sample using the Decision Tree
 def classify(tree, sample):
@@ -106,7 +107,7 @@ def classify(tree, sample):
 
 # Main execution
 if __name__ == "__main__":
-    filename = 'bayes.csv'  # Name of your CSV file
+    filename = 'NBDAT.csv'  # Name of your CSV file
     headers = ['age', 'income', 'student', 'credit_rating']  # Feature names
     training_data = read_csv_file(filename)
 
@@ -118,6 +119,11 @@ if __name__ == "__main__":
     print_tree(tree, headers)
 
     # Classify a new sample: X = (age=youth, income=medium, student=yes, credit_rating=fair)
-    new_sample = ['youth', 'medium', 'yes', 'fair']
+    print("Select features for new sample:")
+    age = input("Enter age (youth,middle_aged, senior): ")
+    income = input("Enter income (low, medium, high): ")
+    student = input("Enter student (yes, no): ")
+    credit_rating = input("Enter credit rating (fair, good, excellent): ")
+    new_sample = [age, income, student, credit_rating]
     predicted_class = classify(tree, new_sample)
     print(f'\nPredicted class for {new_sample}: {predicted_class}')
